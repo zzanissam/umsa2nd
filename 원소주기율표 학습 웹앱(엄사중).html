@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>엄사중 2학년을 위한 원소 주기율표 마스터</title>
+    <!-- Tailwind CSS (스타일링 용도) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif;
+            background-color: #f3f4f6; /* 밝은 회색 배경 */
+        }
+
+        /* 탭 활성화/비활성화 스타일 */
+        .tab-btn {
+            transition: all 0.2s ease-in-out;
+        }
+        .tab-active {
+            border-bottom-width: 4px;
+            border-color: #3b82f6; /* 파란색 활성화 테두리 */
+            color: #1d4ed8;
+            font-weight: 700;
+        }
+        .tab-inactive {
+            color: #6b7280;
+        }
+        .tab-inactive:hover {
+            color: #374151;
+            background-color: #e5e7eb;
+        }
+
+        /* 3D 카드 플립 효과 CSS */
+        .perspective-1000 {
+            perspective: 1000px;
+        }
+        
+        .transform-style-3d {
+            transform-style: preserve-3d;
+        }
+
+        .backface-hidden {
+            backface-visibility: hidden;
+        }
+
+        .rotate-y-180 {
+            transform: rotateY(180deg);
+        }
+
+        /* 카드가 뒤집힐 때의 전환 효과 설정 */
+        .card-inner {
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+
+        /* 카드가 뒤집힌 상태 (is-flipped 클래스가 추가되었을 때) */
+        .card-container.is-flipped .card-inner {
+            transform: rotateY(180deg);
+        }
+
+        /* 옵션 버튼 호버 애니메이션 */
+        .quiz-option {
+            transition: transform 0.1s, background-color 0.2s;
+        }
+        .quiz-option:active {
+            transform: scale(0.98);
+        }
+
+        /* 퀴즈 결과 애니메이션 */
+        @keyframes pop {
+            0% { transform: scale(0.9); opacity: 0; }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .animate-pop {
+            animation: pop 0.4s ease-out forwards;
+        }
+
+        /* 커스텀 스크롤바 (선택사항) */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="min-h-screen text-gray-800 flex flex-col items-center py-10 px-4 sm:px-6 lg:px-8">
+
+    <div class="w-full max-w-4xl bg-white rounded-2xl shadow-xl overflow-hidden">
+        
+        <!-- 헤더 섹션 -->
+        <header class="bg-gradient-to-r from-blue-600 to-indigo-700 p-8 text-center text-white">
+            <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight mb-2">🧪 엄사중 2학년을 위한 원소 주기율표 마스터</h1>
+            <p class="text-blue-100 text-lg">1번(H)부터 20번(Ca)까지 완벽하게 외워보세요!</p>
+        </header>
+
+        <!-- 탭 네비게이션 -->
+        <nav class="flex border-b border-gray-200" aria-label="Tabs">
+            <button id="tab-learn" onclick="switchTab('learn')" class="tab-btn tab-active flex-1 py-4 px-1 text-center font-medium sm:text-lg focus:outline-none">
+                📖 학습 모드
+            </button>
+            <button id="tab-quiz" onclick="switchTab('quiz')" class="tab-btn tab-inactive flex-1 py-4 px-1 text-center font-medium sm:text-lg focus:outline-none">
+                🎯 객관식 퀴즈
+            </button>
+            <button id="tab-subjective" onclick="switchTab('subjective')" class="tab-btn tab-inactive flex-1 py-4 px-1 text-center font-medium sm:text-lg focus:outline-none">
+                ✍️ 주관식 퀴즈
+            </button>
+        </nav>
+
+        <main class="p-6 sm:p-10">
+            <!-- 학습 모드 컨테이너 -->
+            <div id="view-learn" class="block">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-bold text-gray-700">플래시카드 (클릭하여 뒤집기)</h2>
+                    <div class="flex space-x-2">
+                        <button onclick="flipAll(false)" class="text-sm px-3 py-1 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-md transition">모두 앞면</button>
+                        <button onclick="flipAll(true)" class="text-sm px-3 py-1 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-md transition">모두 뒷면</button>
+                    </div>
+                </div>
+                
+                <!-- 원소 주기율표 배치를 위한 스크롤 컨테이너 -->
+                <div class="w-full overflow-x-auto pb-4">
+                    <div id="elements-grid" class="grid gap-1.5 sm:gap-2 min-w-[500px]" style="grid-template-columns: 1fr 1fr 24px 1fr 1fr 1fr 1fr 1fr 1fr;">
+                        <!-- JavaScript로 카드가 생성됩니다. -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- 퀴즈 모드 컨테이너 -->
+            <div id="view-quiz" class="hidden">
+                
+                <!-- 퀴즈 시작 전 화면 -->
+                <div id="quiz-start-screen" class="text-center py-12">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4">준비되셨나요?</h2>
+                    <p class="text-gray-600 mb-8 max-w-md mx-auto">1번부터 20번까지 랜덤으로 문제가 출제됩니다. 기호를 보고 이름을 맞추거나, 이름을 보고 기호를 맞춰보세요.</p>
+                    <button onclick="startQuiz()" class="inline-flex items-center justify-center px-8 py-4 border border-transparent text-lg font-bold rounded-full shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-transform transform hover:scale-105">
+                        퀴즈 시작하기 🚀
+                    </button>
+                </div>
+
+                <!-- 퀴즈 진행 중 화면 -->
+                <div id="quiz-playing-screen" class="hidden max-w-2xl mx-auto">
+                    <!-- 진행 상태 바 -->
+                    <div class="mb-8">
+                        <div class="flex justify-between text-sm font-medium text-gray-500 mb-1">
+                            <span id="quiz-progress-text">문제 1 / 10</span>
+                            <span id="quiz-score-text">점수: 0</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2.5">
+                            <div id="quiz-progress-bar" class="bg-indigo-600 h-2.5 rounded-full transition-all duration-300" style="width: 10%"></div>
+                        </div>
+                    </div>
+
+                    <!-- 질문 컨테이너 -->
+                    <div class="bg-blue-50 rounded-xl p-8 mb-8 text-center shadow-inner border border-blue-100">
+                        <p class="text-gray-500 text-sm font-semibold uppercase tracking-wider mb-2" id="quiz-question-type">다음 기호의 원소 이름은?</p>
+                        <h3 class="text-5xl font-black text-gray-900" id="quiz-question-value">He</h3>
+                    </div>
+
+                    <!-- 선택지 버튼들 -->
+                    <div id="quiz-options-container" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <!-- 버튼이 JavaScript로 생성됩니다. -->
+                    </div>
+                </div>
+
+                <!-- 퀴즈 결과 화면 -->
+                <div id="quiz-result-screen" class="hidden text-center py-10">
+                    <div id="result-icon" class="text-6xl mb-4">🎉</div>
+                    <h2 class="text-3xl font-bold text-gray-900 mb-2">퀴즈 완료!</h2>
+                    <p class="text-gray-600 text-lg mb-6">당신의 최종 점수는...</p>
+                    
+                    <div class="flex justify-center items-end space-x-2 mb-10">
+                        <span id="final-score" class="text-6xl font-black text-indigo-600">80</span>
+                        <span class="text-2xl text-gray-500 font-bold mb-1">/ 100</span>
+                    </div>
+
+                    <div id="result-message" class="text-xl font-medium text-gray-700 mb-10 p-4 bg-gray-100 rounded-lg inline-block">
+                        아주 잘했어요! 조금만 더 연습해볼까요?
+                    </div>
+
+                    <div class="flex justify-center space-x-4">
+                        <button onclick="startQuiz()" class="px-6 py-3 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700 transition">다시 풀기</button>
+                        <button onclick="switchTab('learn')" class="px-6 py-3 bg-gray-200 text-gray-800 font-bold rounded-lg hover:bg-gray-300 transition">다시 학습하기</button>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- 주관식 퀴즈 모드 컨테이너 -->
+            <div id="view-subjective" class="hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <h2 class="text-xl font-bold text-gray-700">빈칸 채우기 (기호 입력)</h2>
+                        <p class="text-sm text-gray-500 mt-1">숫자에 맞는 원소 기호를 영어로 입력하세요.</p>
+                    </div>
+                    <div class="flex space-x-2">
+                        <button onclick="resetSubjective()" class="text-sm px-3 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-md transition font-medium">초기화</button>
+                        <button onclick="checkSubjective()" class="text-sm px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md transition font-bold shadow-sm">채점하기</button>
+                    </div>
+                </div>
+                
+                <!-- 주기율표 형태의 주관식 입력 그리드 -->
+                <div class="w-full overflow-x-auto pb-4">
+                    <div id="subjective-grid" class="grid gap-1.5 sm:gap-2 min-w-[500px]" style="grid-template-columns: 1fr 1fr 24px 1fr 1fr 1fr 1fr 1fr 1fr;">
+                        <!-- JavaScript로 입력 폼이 생성됩니다. -->
+                    </div>
+                </div>
+
+                <!-- 주관식 결과 표시 영역 -->
+                <div id="subjective-result" class="hidden mt-6 text-center"></div>
+            </div>
+        </main>
+        
+        <!-- 푸터 -->
+        <footer class="bg-gray-50 py-4 text-center border-t border-gray-200">
+            <p class="text-sm text-gray-500">계속해서 반복 학습하면 자연스럽게 외워집니다. 화이팅! 💪</p>
+        </footer>
+    </div>
+
+    <script>
+        // 1번부터 20번까지의 원소 데이터 배열 (주기율표 배치 좌표: col(족), row(주기) 추가)
+        const elementsData = [
+            { number: 1, symbol: 'H', name: '수소', color: 'bg-green-100', col: 1, row: 1 },
+            { number: 2, symbol: 'He', name: '헬륨', color: 'bg-purple-100', col: 18, row: 1 },
+            { number: 3, symbol: 'Li', name: '리튬', color: 'bg-red-100', col: 1, row: 2 },
+            { number: 4, symbol: 'Be', name: '베릴륨', color: 'bg-orange-100', col: 2, row: 2 },
+            { number: 5, symbol: 'B', name: '붕소', color: 'bg-yellow-100', col: 13, row: 2 },
+            { number: 6, symbol: 'C', name: '탄소', color: 'bg-green-100', col: 14, row: 2 },
+            { number: 7, symbol: 'N', name: '질소', color: 'bg-green-100', col: 15, row: 2 },
+            { number: 8, symbol: 'O', name: '산소', color: 'bg-green-100', col: 16, row: 2 },
+            { number: 9, symbol: 'F', name: '플루오린', color: 'bg-green-100', col: 17, row: 2 },
+            { number: 10, symbol: 'Ne', name: '네온', color: 'bg-purple-100', col: 18, row: 2 },
+            { number: 11, symbol: 'Na', name: '나트륨', color: 'bg-red-100', col: 1, row: 3 },
+            { number: 12, symbol: 'Mg', name: '마그네슘', color: 'bg-orange-100', col: 2, row: 3 },
+            { number: 13, symbol: 'Al', name: '알루미늄', color: 'bg-teal-100', col: 13, row: 3 },
+            { number: 14, symbol: 'Si', name: '규소', color: 'bg-yellow-100', col: 14, row: 3 },
+            { number: 15, symbol: 'P', name: '인', color: 'bg-green-100', col: 15, row: 3 },
+            { number: 16, symbol: 'S', name: '황', color: 'bg-green-100', col: 16, row: 3 },
+            { number: 17, symbol: 'Cl', name: '염소', color: 'bg-green-100', col: 17, row: 3 },
+            { number: 18, symbol: 'Ar', name: '아르곤', color: 'bg-purple-100', col: 18, row: 3 },
+            { number: 19, symbol: 'K', name: '칼륨', color: 'bg-red-100', col: 1, row: 4 },
+            { number: 20, symbol: 'Ca', name: '칼슘', color: 'bg-orange-100', col: 2, row: 4 }
+        ];
+
+        /* --- 탭 전환 로직 --- */
+        function switchTab(tabName) {
+            const tabs = ['learn', 'quiz', 'subjective'];
+            
+            tabs.forEach(t => {
+                const btn = document.getElementById(`tab-${t}`);
+                const view = document.getElementById(`view-${t}`);
+                
+                if (t === tabName) {
+                    btn.classList.replace('tab-inactive', 'tab-active');
+                    view.classList.remove('hidden');
+                } else {
+                    btn.classList.replace('tab-active', 'tab-inactive');
+                    view.classList.add('hidden');
+                }
+            });
+
+            if (tabName === 'learn') {
+                resetQuizView();
+            }
+        }
+
+        /* --- 학습 모드 로직 --- */
+        
+        // 플래시카드 생성 및 화면에 추가
+        function renderCards() {
+            const grid = document.getElementById('elements-grid');
+            grid.innerHTML = ''; // 초기화
+
+            elementsData.forEach(element => {
+                // 카드 전체 컨테이너 (클릭 이벤트 바인딩)
+                const cardContainer = document.createElement('div');
+                cardContainer.className = 'card-container cursor-pointer perspective-1000 w-full aspect-[3/4]';
+                
+                // 그리드 위치 설정 (가운데 빈 공간 축소를 위해 column 위치 조정)
+                // 1~2족은 그대로(1, 2열), 13~18족은 좁힌 간격(3열) 다음인 4~9열로 당겨서 배치합니다.
+                let gridCol = element.col;
+                if (element.col >= 13) {
+                    gridCol = element.col - 9;
+                }
+                cardContainer.style.gridColumnStart = gridCol;
+                cardContainer.style.gridRowStart = element.row;
+
+                // 클릭 시 해당 카드 컨테이너에 'is-flipped' 클래스 토글
+                cardContainer.onclick = function() {
+                    this.classList.toggle('is-flipped');
+                };
+
+                // 내부 회전 영역
+                const cardInner = document.createElement('div');
+                cardInner.className = 'card-inner relative w-full h-full transform-style-3d';
+
+                // 앞면 (원소 기호)
+                const cardFront = document.createElement('div');
+                cardFront.className = `absolute w-full h-full backface-hidden ${element.color} border border-gray-300 hover:border-gray-400 rounded-md shadow-sm flex flex-col justify-center items-center p-1 transition-colors`;
+                cardFront.innerHTML = `
+                    <span class="absolute top-1 left-1.5 text-[10px] sm:text-xs font-bold text-gray-500">${element.number}</span>
+                    <span class="text-xl sm:text-2xl md:text-3xl font-black text-gray-800 mt-1">${element.symbol}</span>
+                `;
+
+                // 뒷면 (원소 이름)
+                const cardBack = document.createElement('div');
+                cardBack.className = 'absolute w-full h-full backface-hidden rotate-y-180 bg-indigo-600 border border-indigo-700 rounded-md shadow-sm flex flex-col justify-center items-center p-1 text-white';
+                cardBack.innerHTML = `
+                    <span class="text-[10px] sm:text-xs font-medium text-indigo-200 mb-0.5">${element.number}</span>
+                    <span class="text-sm sm:text-base md:text-lg font-bold tracking-tight whitespace-nowrap">${element.name}</span>
+                `;
+
+                // 조립
+                cardInner.appendChild(cardFront);
+                cardInner.appendChild(cardBack);
+                cardContainer.appendChild(cardInner);
+                grid.appendChild(cardContainer);
+            });
+        }
+
+        // 전체 카드 앞/뒷면 일괄 제어
+        function flipAll(toBack) {
+            const cards = document.querySelectorAll('.card-container');
+            cards.forEach(card => {
+                if (toBack) {
+                    card.classList.add('is-flipped');
+                } else {
+                    card.classList.remove('is-flipped');
+                }
+            });
+        }
+
+
+        /* --- 퀴즈 모드 로직 --- */
+        const TOTAL_QUESTIONS = 10; // 출제할 총 문제 수
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let quizQuestions = []; // 생성된 문제 배열
+
+        // 유틸: 배열 섞기 (Fisher-Yates 알고리즘)
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        // 퀴즈 화면 초기화 (시작 화면으로 돌아가기)
+        function resetQuizView() {
+            document.getElementById('quiz-start-screen').classList.remove('hidden');
+            document.getElementById('quiz-playing-screen').classList.add('hidden');
+            document.getElementById('quiz-result-screen').classList.add('hidden');
+        }
+
+        // 퀴즈 문제 세트 생성 로직
+        function generateQuestions() {
+            let questions = [];
+            
+            // 20개의 원소를 무작위로 섞음
+            let shuffledElements = shuffleArray([...elementsData]);
+            
+            // 지정된 수만큼 문제 생성
+            for (let i = 0; i < TOTAL_QUESTIONS; i++) {
+                const targetElement = shuffledElements[i];
+                // 문제 유형 결정 (0: 기호 보고 이름 맞추기, 1: 이름 보고 기호 맞추기, 2: 번호 보고 맞추기)
+                const questionType = Math.floor(Math.random() * 3); 
+                
+                let questionObj = {
+                    correctElement: targetElement,
+                    type: questionType,
+                    options: []
+                };
+
+                // 정답 옵션 추가
+                let correctAnswerStr = "";
+                if (questionType === 0 || questionType === 2) {
+                    correctAnswerStr = targetElement.name;
+                } else {
+                    correctAnswerStr = targetElement.symbol;
+                }
+                
+                questionObj.options.push({ text: correctAnswerStr, isCorrect: true });
+
+                // 오답 옵션 3개 추가 (총 4지 선다)
+                let tempElements = [...elementsData].filter(e => e.number !== targetElement.number);
+                shuffleArray(tempElements);
+                
+                for(let j=0; j<3; j++) {
+                    let wrongAnswerStr = "";
+                    if (questionType === 0 || questionType === 2) {
+                        wrongAnswerStr = tempElements[j].name;
+                    } else {
+                        wrongAnswerStr = tempElements[j].symbol;
+                    }
+                    questionObj.options.push({ text: wrongAnswerStr, isCorrect: false });
+                }
+
+                // 옵션 순서 섞기
+                shuffleArray(questionObj.options);
+                questions.push(questionObj);
+            }
+            return questions;
+        }
+
+
+        // 퀴즈 시작
+        function startQuiz() {
+            currentQuestionIndex = 0;
+            score = 0;
+            quizQuestions = generateQuestions();
+
+            // 화면 전환
+            document.getElementById('quiz-start-screen').classList.add('hidden');
+            document.getElementById('quiz-result-screen').classList.add('hidden');
+            document.getElementById('quiz-playing-screen').classList.remove('hidden');
+            
+            // 첫 문제 표시
+            showQuestion();
+        }
+
+        // 현재 문제 화면에 렌더링
+        function showQuestion() {
+            const q = quizQuestions[currentQuestionIndex];
+            
+            // 진행 상태 업데이트
+            document.getElementById('quiz-progress-text').innerText = `문제 ${currentQuestionIndex + 1} / ${TOTAL_QUESTIONS}`;
+            document.getElementById('quiz-score-text').innerText = `점수: ${score * 10}`;
+            const progressPercent = ((currentQuestionIndex) / TOTAL_QUESTIONS) * 100;
+            document.getElementById('quiz-progress-bar').style.width = `${progressPercent}%`;
+
+            // 질문 내용 설정
+            const typeEl = document.getElementById('quiz-question-type');
+            const valueEl = document.getElementById('quiz-question-value');
+            
+            if (q.type === 0) {
+                typeEl.innerText = "다음 기호의 원소 이름은?";
+                valueEl.innerText = q.correctElement.symbol;
+            } else if (q.type === 1) {
+                typeEl.innerText = "다음 원소의 기호는?";
+                valueEl.innerText = q.correctElement.name;
+            } else {
+                typeEl.innerText = `원자번호 ${q.correctElement.number}번 원소는?`;
+                valueEl.innerText = "No." + q.correctElement.number;
+            }
+
+            // 옵션 버튼 생성
+            const optionsContainer = document.getElementById('quiz-options-container');
+            optionsContainer.innerHTML = '';
+            
+            q.options.forEach((opt, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'quiz-option w-full py-4 px-6 bg-white border-2 border-gray-200 rounded-xl text-lg font-bold text-gray-700 hover:border-indigo-400 hover:bg-indigo-50 focus:outline-none transition-colors text-center';
+                btn.innerText = opt.text;
+                // 클릭 시 정답 체크
+                btn.onclick = () => checkAnswer(opt.isCorrect, btn);
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        // 정답 확인 로직
+        function checkAnswer(isCorrect, selectedButton) {
+            // 모든 버튼 비활성화 (중복 클릭 방지)
+            const allButtons = document.querySelectorAll('.quiz-option');
+            allButtons.forEach(btn => btn.disabled = true);
+
+            if (isCorrect) {
+                score++;
+                // 정답 시각적 피드백
+                selectedButton.classList.remove('border-gray-200', 'text-gray-700', 'hover:bg-indigo-50');
+                selectedButton.classList.add('border-green-500', 'bg-green-100', 'text-green-800');
+            } else {
+                // 오답 시각적 피드백
+                selectedButton.classList.remove('border-gray-200', 'text-gray-700', 'hover:bg-indigo-50');
+                selectedButton.classList.add('border-red-500', 'bg-red-100', 'text-red-800');
+                
+                // 정답 표시해주기
+                const correctOptIndex = quizQuestions[currentQuestionIndex].options.findIndex(o => o.isCorrect);
+                if(correctOptIndex !== -1 && allButtons[correctOptIndex]) {
+                    allButtons[correctOptIndex].classList.remove('border-gray-200');
+                    allButtons[correctOptIndex].classList.add('border-green-500', 'bg-green-50', 'ring-2', 'ring-green-400');
+                }
+            }
+
+            // 점수 실시간 업데이트
+            document.getElementById('quiz-score-text').innerText = `점수: ${score * 10}`;
+
+            // 약간의 지연 후 다음 문제 또는 결과 화면으로 이동
+            setTimeout(() => {
+                currentQuestionIndex++;
+                if (currentQuestionIndex < TOTAL_QUESTIONS) {
+                    showQuestion();
+                } else {
+                    showResult();
+                }
+            }, 1200); // 1.2초 대기
+        }
+
+        // 최종 결과 화면 표시
+        function showResult() {
+            document.getElementById('quiz-playing-screen').classList.add('hidden');
+            const resultScreen = document.getElementById('quiz-result-screen');
+            resultScreen.classList.remove('hidden');
+            resultScreen.classList.add('animate-pop');
+
+            const finalScore = score * 10; // 100점 만점으로 환산 (10문제 * 10점)
+            document.getElementById('final-score').innerText = finalScore;
+
+            const iconEl = document.getElementById('result-icon');
+            const msgEl = document.getElementById('result-message');
+            
+            // 점수에 따른 메시지 다르게 표시
+            if (finalScore === 100) {
+                iconEl.innerText = '🏆';
+                msgEl.innerText = "완벽해요! 주기율표 20번까지 마스터하셨네요!";
+                msgEl.className = "text-xl font-medium text-green-700 mb-10 p-4 bg-green-100 rounded-lg inline-block";
+            } else if (finalScore >= 70) {
+                iconEl.innerText = '👏';
+                msgEl.innerText = "아주 잘했어요! 조금만 더 연습하면 완벽해질 거예요.";
+                msgEl.className = "text-xl font-medium text-blue-700 mb-10 p-4 bg-blue-100 rounded-lg inline-block";
+            } else if (finalScore >= 40) {
+                iconEl.innerText = '💪';
+                msgEl.innerText = "좋은 시도입니다! 플래시카드로 다시 한번 복습해볼까요?";
+                msgEl.className = "text-xl font-medium text-orange-700 mb-10 p-4 bg-orange-100 rounded-lg inline-block";
+            } else {
+                iconEl.innerText = '📚';
+                msgEl.innerText = "학습 모드에서 원소들을 눈에 익힌 후 다시 도전해보세요!";
+                msgEl.className = "text-xl font-medium text-gray-700 mb-10 p-4 bg-gray-100 rounded-lg inline-block";
+            }
+        }
+
+        /* --- 주관식 퀴즈 로직 --- */
+        
+        // 주관식 카드(입력칸) 생성
+        function renderSubjectiveCards() {
+            const grid = document.getElementById('subjective-grid');
+            grid.innerHTML = '';
+
+            elementsData.forEach(element => {
+                const container = document.createElement('div');
+                container.className = 'flex flex-col items-center justify-center py-2 px-1 bg-white border-2 border-gray-200 rounded-lg shadow-sm transition-colors';
+                
+                // 그리드 위치 설정 (학습 모드와 동일한 배치)
+                let gridCol = element.col;
+                if (element.col >= 13) {
+                    gridCol = element.col - 9;
+                }
+                container.style.gridColumnStart = gridCol;
+                container.style.gridRowStart = element.row;
+
+                // 입력 필드와 정답 텍스트
+                container.innerHTML = `
+                    <label for="subj-input-${element.number}" class="text-xs sm:text-sm font-bold text-gray-500 mb-1">${element.number}번</label>
+                    <input type="text" id="subj-input-${element.number}" 
+                           class="w-full text-center text-xl sm:text-2xl font-black text-gray-800 border-b-2 border-dashed border-gray-300 focus:border-indigo-500 focus:outline-none bg-transparent" 
+                           maxlength="2" autocomplete="off"
+                           oninput="formatElementSymbol(this)">
+                    <span id="subj-ans-${element.number}" class="text-xs font-bold text-red-500 hidden mt-1">${element.symbol}</span>
+                `;
+                grid.appendChild(container);
+            });
+        }
+
+        // 입력 시 원소 기호 형식에 맞게 자동 변환 (첫 글자 대문자, 두 번째 글자 소문자)
+        function formatElementSymbol(inputEl) {
+            // 영문자만 남기기
+            let v = inputEl.value.replace(/[^a-zA-Z]/g, '');
+            if (v.length > 0) {
+                // 첫 글자는 대문자, 나머지는 소문자
+                v = v.charAt(0).toUpperCase() + v.slice(1).toLowerCase();
+            }
+            inputEl.value = v;
+        }
+
+        // 주관식 답안 채점
+        function checkSubjective() {
+            let correctCount = 0;
+            
+            elementsData.forEach(element => {
+                const inputEl = document.getElementById(`subj-input-${element.number}`);
+                const ansEl = document.getElementById(`subj-ans-${element.number}`);
+                const container = inputEl.parentElement;
+                
+                const userAnswer = inputEl.value.trim();
+                const correctAnswer = element.symbol;
+                
+                // 기존 상태 초기화
+                container.classList.remove('border-gray-200', 'border-green-500', 'border-red-500', 'bg-green-50', 'bg-red-50');
+                
+                if (userAnswer === correctAnswer) {
+                    correctCount++;
+                    container.classList.add('border-green-500', 'bg-green-50');
+                    ansEl.classList.add('hidden'); // 정답 숨김
+                    inputEl.classList.replace('text-gray-800', 'text-green-700');
+                    inputEl.classList.replace('border-gray-300', 'border-green-200');
+                } else {
+                    container.classList.add('border-red-500', 'bg-red-50');
+                    ansEl.classList.remove('hidden'); // 틀리면 정답 표시
+                    inputEl.classList.replace('text-gray-800', 'text-red-700');
+                    inputEl.classList.replace('border-gray-300', 'border-red-200');
+                }
+            });
+            
+            // 결과 메시지 표시
+            const resultEl = document.getElementById('subjective-result');
+            resultEl.classList.remove('hidden');
+            resultEl.innerText = `총 20문제 중 ${correctCount}문제를 맞췄습니다!`;
+            
+            if(correctCount === 20) {
+                 resultEl.className = 'mt-6 p-4 text-center font-bold text-2xl text-green-700 bg-green-100 rounded-lg animate-pop';
+                 resultEl.innerText += ' 🎉 완벽합니다!';
+            } else {
+                 resultEl.className = 'mt-6 p-4 text-center font-bold text-xl text-indigo-700 bg-indigo-50 rounded-lg animate-pop';
+                 resultEl.innerText += ' 틀린 부분을 확인해보세요.';
+            }
+        }
+
+        // 주관식 퀴즈 초기화
+        function resetSubjective() {
+            renderSubjectiveCards(); // 카드를 다시 그려서 텍스트와 스타일 완전 초기화
+            const resultEl = document.getElementById('subjective-result');
+            resultEl.classList.add('hidden');
+        }
+
+        // 페이지 로드 시 초기 설정 실행
+        window.onload = function() {
+            renderCards(); // 객관식/학습용 카드 생성
+            renderSubjectiveCards(); // 주관식 폼 생성
+        };
+
+    </script>
+</body>
+</html>
