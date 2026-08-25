@@ -76,7 +76,7 @@
             animation: pop 0.4s ease-out forwards;
         }
 
-        /* 커스텀 스크롤바 (선택사항) */
+        /* 커스텀 스크롤바 */
         ::-webkit-scrollbar {
             width: 8px;
         }
@@ -226,7 +226,7 @@
     </div>
 
     <script>
-        // 1번부터 20번까지의 원소 데이터 배열 (주기율표 배치 좌표: col(족), row(주기) 추가)
+        // 1번부터 20번까지의 원소 데이터 배열
         const elementsData = [
             { number: 1, symbol: 'H', name: '수소', color: 'bg-green-100', col: 1, row: 1 },
             { number: 2, symbol: 'He', name: '헬륨', color: 'bg-purple-100', col: 18, row: 1 },
@@ -273,19 +273,14 @@
         }
 
         /* --- 학습 모드 로직 --- */
-        
-        // 플래시카드 생성 및 화면에 추가
         function renderCards() {
             const grid = document.getElementById('elements-grid');
-            grid.innerHTML = ''; // 초기화
+            grid.innerHTML = '';
 
             elementsData.forEach(element => {
-                // 카드 전체 컨테이너 (클릭 이벤트 바인딩)
                 const cardContainer = document.createElement('div');
                 cardContainer.className = 'card-container cursor-pointer perspective-1000 w-full aspect-[3/4]';
                 
-                // 그리드 위치 설정 (가운데 빈 공간 축소를 위해 column 위치 조정)
-                // 1~2족은 그대로(1, 2열), 13~18족은 좁힌 간격(3열) 다음인 4~9열로 당겨서 배치합니다.
                 let gridCol = element.col;
                 if (element.col >= 13) {
                     gridCol = element.col - 9;
@@ -293,16 +288,13 @@
                 cardContainer.style.gridColumnStart = gridCol;
                 cardContainer.style.gridRowStart = element.row;
 
-                // 클릭 시 해당 카드 컨테이너에 'is-flipped' 클래스 토글
                 cardContainer.onclick = function() {
                     this.classList.toggle('is-flipped');
                 };
 
-                // 내부 회전 영역
                 const cardInner = document.createElement('div');
                 cardInner.className = 'card-inner relative w-full h-full transform-style-3d';
 
-                // 앞면 (원소 기호)
                 const cardFront = document.createElement('div');
                 cardFront.className = `absolute w-full h-full backface-hidden ${element.color} border border-gray-300 hover:border-gray-400 rounded-md shadow-sm flex flex-col justify-center items-center p-1 transition-colors`;
                 cardFront.innerHTML = `
@@ -310,7 +302,6 @@
                     <span class="text-xl sm:text-2xl md:text-3xl font-black text-gray-800 mt-1">${element.symbol}</span>
                 `;
 
-                // 뒷면 (원소 이름)
                 const cardBack = document.createElement('div');
                 cardBack.className = 'absolute w-full h-full backface-hidden rotate-y-180 bg-indigo-600 border border-indigo-700 rounded-md shadow-sm flex flex-col justify-center items-center p-1 text-white';
                 cardBack.innerHTML = `
@@ -318,7 +309,6 @@
                     <span class="text-sm sm:text-base md:text-lg font-bold tracking-tight whitespace-nowrap">${element.name}</span>
                 `;
 
-                // 조립
                 cardInner.appendChild(cardFront);
                 cardInner.appendChild(cardBack);
                 cardContainer.appendChild(cardInner);
@@ -326,7 +316,6 @@
             });
         }
 
-        // 전체 카드 앞/뒷면 일괄 제어
         function flipAll(toBack) {
             const cards = document.querySelectorAll('.card-container');
             cards.forEach(card => {
@@ -340,12 +329,11 @@
 
 
         /* --- 퀴즈 모드 로직 --- */
-        const TOTAL_QUESTIONS = 10; // 출제할 총 문제 수
+        const TOTAL_QUESTIONS = 10;
         let currentQuestionIndex = 0;
         let score = 0;
-        let quizQuestions = []; // 생성된 문제 배열
+        let quizQuestions = [];
 
-        // 유틸: 배열 섞기 (Fisher-Yates 알고리즘)
         function shuffleArray(array) {
             for (let i = array.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
@@ -354,25 +342,21 @@
             return array;
         }
 
-        // 퀴즈 화면 초기화 (시작 화면으로 돌아가기)
         function resetQuizView() {
             document.getElementById('quiz-start-screen').classList.remove('hidden');
             document.getElementById('quiz-playing-screen').classList.add('hidden');
             document.getElementById('quiz-result-screen').classList.add('hidden');
         }
 
-        // 퀴즈 문제 세트 생성 로직
+        // 퀴즈 문제 세트 생성 (원자번호 질문 제외)
         function generateQuestions() {
             let questions = [];
-            
-            // 20개의 원소를 무작위로 섞음
             let shuffledElements = shuffleArray([...elementsData]);
             
-            // 지정된 수만큼 문제 생성
             for (let i = 0; i < TOTAL_QUESTIONS; i++) {
                 const targetElement = shuffledElements[i];
-                // 문제 유형 결정 (0: 기호 보고 이름 맞추기, 1: 이름 보고 기호 맞추기, 2: 번호 보고 맞추기)
-                const questionType = Math.floor(Math.random() * 3); 
+                // 문제 유형 결정 (0: 기호 보고 이름 맞추기, 1: 이름 보고 기호 맞추기)
+                const questionType = Math.floor(Math.random() * 2); 
                 
                 let questionObj = {
                     correctElement: targetElement,
@@ -380,9 +364,8 @@
                     options: []
                 };
 
-                // 정답 옵션 추가
                 let correctAnswerStr = "";
-                if (questionType === 0 || questionType === 2) {
+                if (questionType === 0) {
                     correctAnswerStr = targetElement.name;
                 } else {
                     correctAnswerStr = targetElement.symbol;
@@ -390,13 +373,12 @@
                 
                 questionObj.options.push({ text: correctAnswerStr, isCorrect: true });
 
-                // 오답 옵션 3개 추가 (총 4지 선다)
                 let tempElements = [...elementsData].filter(e => e.number !== targetElement.number);
                 shuffleArray(tempElements);
                 
-                for(let j=0; j<3; j++) {
+                for(let j = 0; j < 3; j++) {
                     let wrongAnswerStr = "";
-                    if (questionType === 0 || questionType === 2) {
+                    if (questionType === 0) {
                         wrongAnswerStr = tempElements[j].name;
                     } else {
                         wrongAnswerStr = tempElements[j].symbol;
@@ -404,85 +386,67 @@
                     questionObj.options.push({ text: wrongAnswerStr, isCorrect: false });
                 }
 
-                // 옵션 순서 섞기
                 shuffleArray(questionObj.options);
                 questions.push(questionObj);
             }
             return questions;
         }
 
-
-        // 퀴즈 시작
         function startQuiz() {
             currentQuestionIndex = 0;
             score = 0;
             quizQuestions = generateQuestions();
 
-            // 화면 전환
             document.getElementById('quiz-start-screen').classList.add('hidden');
             document.getElementById('quiz-result-screen').classList.add('hidden');
             document.getElementById('quiz-playing-screen').classList.remove('hidden');
             
-            // 첫 문제 표시
             showQuestion();
         }
 
-        // 현재 문제 화면에 렌더링
         function showQuestion() {
             const q = quizQuestions[currentQuestionIndex];
             
-            // 진행 상태 업데이트
             document.getElementById('quiz-progress-text').innerText = `문제 ${currentQuestionIndex + 1} / ${TOTAL_QUESTIONS}`;
             document.getElementById('quiz-score-text').innerText = `점수: ${score * 10}`;
             const progressPercent = ((currentQuestionIndex) / TOTAL_QUESTIONS) * 100;
             document.getElementById('quiz-progress-bar').style.width = `${progressPercent}%`;
 
-            // 질문 내용 설정
             const typeEl = document.getElementById('quiz-question-type');
             const valueEl = document.getElementById('quiz-question-value');
             
             if (q.type === 0) {
                 typeEl.innerText = "다음 기호의 원소 이름은?";
                 valueEl.innerText = q.correctElement.symbol;
-            } else if (q.type === 1) {
+            } else {
                 typeEl.innerText = "다음 원소의 기호는?";
                 valueEl.innerText = q.correctElement.name;
-            } else {
-                typeEl.innerText = `원자번호 ${q.correctElement.number}번 원소는?`;
-                valueEl.innerText = "No." + q.correctElement.number;
             }
 
-            // 옵션 버튼 생성
             const optionsContainer = document.getElementById('quiz-options-container');
             optionsContainer.innerHTML = '';
             
-            q.options.forEach((opt, index) => {
+            q.options.forEach((opt) => {
                 const btn = document.createElement('button');
                 btn.className = 'quiz-option w-full py-4 px-6 bg-white border-2 border-gray-200 rounded-xl text-lg font-bold text-gray-700 hover:border-indigo-400 hover:bg-indigo-50 focus:outline-none transition-colors text-center';
                 btn.innerText = opt.text;
-                // 클릭 시 정답 체크
                 btn.onclick = () => checkAnswer(opt.isCorrect, btn);
                 optionsContainer.appendChild(btn);
             });
         }
 
-        // 정답 확인 로직
         function checkAnswer(isCorrect, selectedButton) {
-            // 모든 버튼 비활성화 (중복 클릭 방지)
             const allButtons = document.querySelectorAll('.quiz-option');
             allButtons.forEach(btn => btn.disabled = true);
 
             if (isCorrect) {
                 score++;
-                // 정답 시각적 피드백
                 selectedButton.classList.remove('border-gray-200', 'text-gray-700', 'hover:bg-indigo-50');
                 selectedButton.classList.add('border-green-500', 'bg-green-100', 'text-green-800');
             } else {
-                // 오답 시각적 피드백
                 selectedButton.classList.remove('border-gray-200', 'text-gray-700', 'hover:bg-indigo-50');
                 selectedButton.classList.add('border-red-500', 'bg-red-100', 'text-red-800');
                 
-                // 정답 표시해주기
                 const correctOptIndex = quizQuestions[currentQuestionIndex].options.findIndex(o => o.isCorrect);
                 if(correctOptIndex !== -1 && allButtons[correctOptIndex]) {
                     allButtons[correctOptIndex].classList.remove('border-gray-200');
@@ -490,10 +454,8 @@
                 }
             }
 
-            // 점수 실시간 업데이트
             document.getElementById('quiz-score-text').innerText = `점수: ${score * 10}`;
 
-            // 약간의 지연 후 다음 문제 또는 결과 화면으로 이동
             setTimeout(() => {
                 currentQuestionIndex++;
                 if (currentQuestionIndex < TOTAL_QUESTIONS) {
@@ -501,23 +463,21 @@
                 } else {
                     showResult();
                 }
-            }, 1200); // 1.2초 대기
+            }, 1200);
         }
 
-        // 최종 결과 화면 표시
         function showResult() {
             document.getElementById('quiz-playing-screen').classList.add('hidden');
             const resultScreen = document.getElementById('quiz-result-screen');
             resultScreen.classList.remove('hidden');
             resultScreen.classList.add('animate-pop');
 
-            const finalScore = score * 10; // 100점 만점으로 환산 (10문제 * 10점)
+            const finalScore = score * 10;
             document.getElementById('final-score').innerText = finalScore;
 
             const iconEl = document.getElementById('result-icon');
             const msgEl = document.getElementById('result-message');
             
-            // 점수에 따른 메시지 다르게 표시
             if (finalScore === 100) {
                 iconEl.innerText = '🏆';
                 msgEl.innerText = "완벽해요! 주기율표 20번까지 마스터하셨네요!";
@@ -538,8 +498,6 @@
         }
 
         /* --- 주관식 퀴즈 로직 --- */
-        
-        // 주관식 카드(입력칸) 생성
         function renderSubjectiveCards() {
             const grid = document.getElementById('subjective-grid');
             grid.innerHTML = '';
@@ -548,7 +506,6 @@
                 const container = document.createElement('div');
                 container.className = 'flex flex-col items-center justify-center py-2 px-1 bg-white border-2 border-gray-200 rounded-lg shadow-sm transition-colors';
                 
-                // 그리드 위치 설정 (학습 모드와 동일한 배치)
                 let gridCol = element.col;
                 if (element.col >= 13) {
                     gridCol = element.col - 9;
@@ -556,7 +513,6 @@
                 container.style.gridColumnStart = gridCol;
                 container.style.gridRowStart = element.row;
 
-                // 입력 필드와 정답 텍스트
                 container.innerHTML = `
                     <label for="subj-input-${element.number}" class="text-xs sm:text-sm font-bold text-gray-500 mb-1">${element.number}번</label>
                     <input type="text" id="subj-input-${element.number}" 
@@ -569,18 +525,14 @@
             });
         }
 
-        // 입력 시 원소 기호 형식에 맞게 자동 변환 (첫 글자 대문자, 두 번째 글자 소문자)
         function formatElementSymbol(inputEl) {
-            // 영문자만 남기기
             let v = inputEl.value.replace(/[^a-zA-Z]/g, '');
             if (v.length > 0) {
-                // 첫 글자는 대문자, 나머지는 소문자
                 v = v.charAt(0).toUpperCase() + v.slice(1).toLowerCase();
             }
             inputEl.value = v;
         }
 
-        // 주관식 답안 채점
         function checkSubjective() {
             let correctCount = 0;
             
@@ -592,24 +544,22 @@
                 const userAnswer = inputEl.value.trim();
                 const correctAnswer = element.symbol;
                 
-                // 기존 상태 초기화
                 container.classList.remove('border-gray-200', 'border-green-500', 'border-red-500', 'bg-green-50', 'bg-red-50');
                 
                 if (userAnswer === correctAnswer) {
                     correctCount++;
                     container.classList.add('border-green-500', 'bg-green-50');
-                    ansEl.classList.add('hidden'); // 정답 숨김
+                    ansEl.classList.add('hidden');
                     inputEl.classList.replace('text-gray-800', 'text-green-700');
                     inputEl.classList.replace('border-gray-300', 'border-green-200');
                 } else {
                     container.classList.add('border-red-500', 'bg-red-50');
-                    ansEl.classList.remove('hidden'); // 틀리면 정답 표시
+                    ansEl.classList.remove('hidden');
                     inputEl.classList.replace('text-gray-800', 'text-red-700');
                     inputEl.classList.replace('border-gray-300', 'border-red-200');
                 }
             });
             
-            // 결과 메시지 표시
             const resultEl = document.getElementById('subjective-result');
             resultEl.classList.remove('hidden');
             resultEl.innerText = `총 20문제 중 ${correctCount}문제를 맞췄습니다!`;
@@ -623,17 +573,15 @@
             }
         }
 
-        // 주관식 퀴즈 초기화
         function resetSubjective() {
-            renderSubjectiveCards(); // 카드를 다시 그려서 텍스트와 스타일 완전 초기화
+            renderSubjectiveCards();
             const resultEl = document.getElementById('subjective-result');
             resultEl.classList.add('hidden');
         }
 
-        // 페이지 로드 시 초기 설정 실행
         window.onload = function() {
-            renderCards(); // 객관식/학습용 카드 생성
-            renderSubjectiveCards(); // 주관식 폼 생성
+            renderCards();
+            renderSubjectiveCards();
         };
 
     </script>
